@@ -13,13 +13,13 @@ string sha1_encode(string message) {
     uint32_t h3 = 0x10325476;
     uint32_t h4 = 0xC3D2E1F0;
 
-    // make a copy form the password
+    // Make a copy form the password
     string msg = message;
 
-    // appending '1' bit to the message
+    // Appending '1' bit to the message
     msg += static_cast<char>(0x80); 
 
-    // append padding if it needs
+    // Append padding if it needs
     while ((msg.size() * 8) % 512 != 448) {
         msg += static_cast<char>(0x00);
     }
