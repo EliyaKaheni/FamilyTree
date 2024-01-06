@@ -1,16 +1,28 @@
 #include <bits/stdc++.h>
+// Library effective with Windows
+// #include <windows.h>
+ 
+// Library effective with Linux
+#include <unistd.h>
+
 using namespace std;
 
 // Functions & Structures 
 struct Person;
 void print(Person &p);
 int family_size(vector<Person> family);
-void died(vector<Person> &family, int i);
+void died(vector<Person> &family, string p);
 int find(vector<Person> family, string _name);
+void furthest(const std::vector<Person>& family);
+int generations(vector<Person> &family, string p1, int gen=0);
+bool relationsihp(string p1, string p2, vector<Person> family);
+string same_ancester(string p1, string p2, vector<Person> family);
+map<int, string> how_far(const vector<Person> &family, string p1);
 bool bro_or_sis(string _name, string _sibling, vector<Person> family);
 bool mom_is_that_you(string _name, string _mother, vector<Person> family);
 bool dad_is_that_you(string _name, string _father, vector<Person> family);
 void add(Person &p, string _name, string _father, string _mother, vector<Person> &family);
+vector<string> ancestor_finder(string p1, vector<string> &ancestors, vector<Person> &family);
 
 
 // A structure for each person 
@@ -74,8 +86,8 @@ int family_size(vector<Person> family){
 }
 
 // A person died
-void died(vector<Person> &family, int i){
-    family[i].name += " R.I.P";
+void died(vector<Person> &family, string p){
+    family[find(family, p)].name += " R.I.P";
 }
 
 // Father check
@@ -107,7 +119,7 @@ bool bro_or_sis(string _name, string _sibling, vector<Person> family){
 }
 
 // Find all ancestors of a person
-vector<string> ancestor_finder(vector<Person> &family, string p1, vector<string> &ancestors){
+vector<string> ancestor_finder(string p1, vector<string> &ancestors, vector<Person> &family){
     queue<string> q; 
     unordered_set<string> visited;  
     
@@ -138,12 +150,12 @@ vector<string> ancestor_finder(vector<Person> &family, string p1, vector<string>
 }
 
 // Returns the same ancester of two people
-string same_ancester(vector<Person> family, string p1, string p2){
+string same_ancester(string p1, string p2, vector<Person> family){
     vector<string> anc1;
     vector<string> anc2;
     
-    anc1 = ancestor_finder(family, p1, anc1);
-    anc2 = ancestor_finder(family, p2, anc2);
+    anc1 = ancestor_finder(p1, anc1, family);
+    anc2 = ancestor_finder(p2, anc2, family);
 
     for(int i=0; i<anc1.size(); i++){
         for(int j=0; j<anc2.size(); j++){
@@ -157,14 +169,52 @@ string same_ancester(vector<Person> family, string p1, string p2){
 }
 
 // Are two people related or not?
-bool relationsihp(vector<Person> family, string p1, string p2){
-    if(same_ancester(family, p1, p2) != "Not found")
-        return 1;
+bool relationsihp(string p1, string p2, vector<Person> family){
+    queue<string> q; 
+    vector<string> visited;  
+
+    q.push(p1);  
+    visited.push_back(p1); 
+
+    while (!q.empty()) {
+        string current = q.front();
+        q.pop();
+
+        int i = find(family, current);
+        Person a = family[i];
+
+        if (a.father && find(visited.begin(), visited.end(), a.father->name) == visited.end()) {
+            q.push(a.father->name);
+            if(a.father->name == p2)
+                return 1;  
+            visited.push_back(a.father->name);  
+        }
+
+        if (a.mother && find(visited.begin(), visited.end(), a.mother->name) == visited.end()) {
+            q.push(a.mother->name); 
+            if(a.father->name == p2)
+                return 1;
+            visited.push_back(a.mother->name);
+        }
+
+        if(a.father) {
+            for(auto &child : a.father->childs) {
+                if(child.name != current && find(visited.begin(), visited.end() ,child.name) == visited.end()) {
+                    q.push(child.name);
+                    if(a.father->name == p2)
+                        return 1;
+                    visited.push_back(child.name);
+                }
+            }
+        }
+    }
+
     return 0;
+    
 }
 
-// 
-int generations(vector<Person> &family, string p1, int gen=0) {
+// How many generation are related to this person
+int generations(vector<Person> &family, string p1, int gen=0){
     Person p = family[find(family, p1)];
 
     if (p.childs.size() == 0) {
@@ -180,8 +230,7 @@ int generations(vector<Person> &family, string p1, int gen=0) {
     }
 }
 
-
-
+// Maximum distance of a person to another related person in the family
 map<int, string> how_far(const vector<Person> &family, string p1){
     queue<string> q; 
     vector<string> visited;  
@@ -198,7 +247,6 @@ map<int, string> how_far(const vector<Person> &family, string p1){
         int i = find(family, current);
         Person a = family[i];
 
-        // Check and enqueue parents
         if (a.father && find(visited.begin(), visited.end(), a.father->name) == visited.end()) {
             relatives.push_back(a.father->name);
             q.push(a.father->name);  
@@ -228,7 +276,8 @@ map<int, string> how_far(const vector<Person> &family, string p1){
     return ans;
 }
 
-void furthest(const std::vector<Person>& family) {
+// Who two people have the furthest distance in the family
+void furthest(const std::vector<Person>& family){
     map<pair<int, string>, string> answers;
 
     for (int i=0; i<family.size(); i++) {
@@ -242,14 +291,17 @@ void furthest(const std::vector<Person>& family) {
     }
 
     auto last_pair = *answers.rbegin();
-    cout<<"The furthest relationship is between: ";
+    cout<<"The furthest relationship in your family is between: ";
     cout<<last_pair.first.second << " & " << last_pair.second<<endl; 
 
 }
 
 int main(){
 
+    // Definition of the family
     vector<Person> family;
+
+    // Sample family: uncomment if you need
     Person p;
     add(p, "ali", "akbar", "mariya", family);
 
@@ -271,8 +323,186 @@ int main(){
     Person w;
     add(w, "ala", "ali", "narges", family);
 
-    vector<int> val = {};
-    cout<<generations(family, "akbar", 0);
-    
+    // Main Menu
+    bool LifeIsBeautiful = true;
+    while(LifeIsBeautiful){
+        int task;
+        cout<<"^^^^^^^^^^Hello Mysterious Family^^^^^^^^^^"<<endl;
+        cout<<"you can easily and safely make your family tree using these commands:"<<endl;
+        cout<<"1. Adding a person"<<endl;
+        cout<<"2. A person is dead"<<endl;
+        cout<<"3. Size of the family"<<endl<<endl;
+        cout<<"4. Checking (Father & son/daughter)"<<endl;
+        cout<<"5. Checking (Mother & son/daughter)"<<endl;
+        cout<<"6. Checking (Siblings)"<<endl;
+        cout<<"7. Checking (Distant relatives)"<<endl<<endl;
+        cout<<"8. Tell me the (Common ancestor)"<<endl;
+        cout<<"9. Tell me the (Furthest born)"<<endl;
+        cout<<"10. Tell me the (Furthest ralativeness)"<<endl<<endl;
+        cout<<"0.  Quit"<<endl<<endl<<endl;
+        
+        cout<<"Please enter your command: ";
+        cin>>task;
+
+        string name, father, mother, name2;
+        Person P;
+        switch(task){
+
+        case 1:
+            system("clear");
+            cout<<"You are adding a person to the family tree:"<<endl;
+            cout<<"please enter the name of the person: ";
+            cin>>name;
+            cout<<"please enter the name of the father of the person: ";
+            cin>>father;
+            cout<<"please enter the name of the mother of the person: ";
+            cin>>mother;
+            
+            add(P, name, father, mother, family);
+            cout<<"Added succesfully. you`ll be back to the main menu in 5 seconds ... ";
+
+            cout<<endl;
+            sleep(5);
+            break;
+        
+        case 2:
+            system("clear");
+            cout<<"I`m so sorry that we have lost a person, please enter the name: ";
+            cin>>name;
+
+            died(family, name);
+            cout<<"Edited succesfully. you`ll be back to the main menu in 5 seconds ... ";
+
+            
+            cout<<endl;
+            sleep(5);
+            break;
+
+        case 3:
+            system("clear");
+            cout<<"there is "<<family_size(family)<<" people in your family."<<endl;
+            
+            cout<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+
+        case 4:
+            system("clear");
+            cout<<"You are checking if two people are father & (son/daughter) or not"<<endl;
+            cout<<"Enter the name of the father: ";
+            cin>>father;
+            cout<<"Enter the name of the son/daughter: ";
+            cin>>name;
+
+            if(dad_is_that_you(name, father, family))
+                cout<<"Yes. " << father << " is the father of the " << name;
+            else
+                cout<<"No." << father << " isn`t the father of the " << name;
+            
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+        
+        case 5:
+            system("clear");
+            cout<<"You are checking if two people are mother & (son/daughter) or not"<<endl;
+            cout<<"Enter the name of the mother: ";
+            cin>>father;
+            cout<<"Enter the name of the son/daughter: ";
+            cin>>name;
+
+            if(mom_is_that_you(name, father, family))
+                cout<<"Yes. " << mother << " is the mother of the " << name;
+            else
+                cout<<"No." << mother << " isn`t the mother of the " << name;
+            
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+
+        case 6:
+            system("clear");
+            cout<<"You are checking if two people are siblings or not"<<endl;
+            cout<<"Enter the name of the fist person: ";
+            cin>>name;
+            cout<<"Enter the name of the second person: ";
+            cin>>name2;
+
+            if(bro_or_sis(name, name2, family))
+                cout<<"Yes. " << name << " & " << name2 << " are siblings.";
+            else
+                cout<<"No. " << name << " & " << name2 << " aren`t siblings.";
+            
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+
+        case 7:
+            system("clear");
+            cout<<"You are checking if two people are distant relatives or not"<<endl;
+            cout<<"Enter the name of the fist person: ";
+            cin>>name;
+            cout<<"Enter the name of the second person: ";
+            cin>>name2;
+
+            if(relationsihp(name, name2, family))
+                cout<<"Yes. " << name << " & " << name2 << " are relatives.";
+            else
+                cout<<"No. " << name << " & " << name2 << " aren`t relatives.";
+            
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+
+        case 8:
+            system("clear");
+            cout<<"You are looking for the common ancestor of two people"<<endl;
+            cout<<"Enter the name of the fist person: ";
+            cin>>name;
+            cout<<"Enter the name of the second person: ";
+            cin>>name2;
+
+            father = same_ancester(name, name2, family);
+            if(father != "Not found")
+                cout<<father<< " is ancestor of both of them"<<endl;
+            else
+                cout<<"They don`t have same ancestors"<<endl;
+
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+
+        case 9:
+            system("clear");
+            cout<<"You wnat to know how many generations have been born after a person"<<endl;
+            cout<<"Enter the name of the person: ";
+            cin>>name;
+
+            cout<<generations(family, name, 0)<<" generations have been born after "<< name;
+            
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+        
+        case 10:
+            system("clear");
+            
+            furthest(family);
+            
+            cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
+            sleep(5);
+            break;
+        
+        case 0:
+            LifeIsBeautiful = false;
+            system("clear");
+            cout<<endl<<"Wish to see you soon <3"<<endl;
+            sleep(5);
+            break;
+        }
+
+    }
+
+
     return 0;
 }
