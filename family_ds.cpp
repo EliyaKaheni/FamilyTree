@@ -29,23 +29,25 @@ void add(Person &p, string _name, string _father, string _mother, vector<Person>
     if(motherIndex == -1){
         p.mother = new Person;
         p.mother->name = _mother;
+        p.mother->childs.push_back(p);
         family.push_back(*p.mother);
     }
     else {
         p.mother = &family[motherIndex];
+        p.mother->childs.push_back(p);
     }
-    p.mother->childs.push_back(p);
-    
+
     int fatherIndex = find(family, _father);
     if(fatherIndex == -1){
         p.father = new Person;
         p.father->name = _father;
+        p.father->childs.push_back(p);
         family.push_back(*p.father);
     }
     else {
         p.father = &family[fatherIndex];
+        p.father->childs.push_back(p);
     }
-    p.father->childs.push_back(p);
 
     family.push_back(p);
 }
@@ -104,19 +106,7 @@ bool bro_or_sis(string _name, string _sibling, vector<Person> family){
     return (temp.father->name == temp2.father->name) && (temp.mother->name == temp2.mother->name);
 }
 
-// int generations(vector<Person> family, int i){
-//     Person p = family[i];
-//     int max_gen = 0;
-//     if (p.childs.size()==0)
-//         return 0;
-    
-//     else {
-
-//         return 
-//     }
-// }
-
-// returns all ancesters of a person
+// Find all ancestors of a person
 vector<string> ancestor_finder(vector<Person> &family, string p1, vector<string> &ancestors){
     queue<string> q; 
     unordered_set<string> visited;  
@@ -147,7 +137,7 @@ vector<string> ancestor_finder(vector<Person> &family, string p1, vector<string>
     return ancestors;
 }
 
-// returns the same ancester of two person
+// Returns the same ancester of two people
 string same_ancester(vector<Person> family, string p1, string p2){
     vector<string> anc1;
     vector<string> anc2;
@@ -163,6 +153,97 @@ string same_ancester(vector<Person> family, string p1, string p2){
     }
 
     return "Not found";
+
+}
+
+// Are two people related or not?
+bool relationsihp(vector<Person> family, string p1, string p2){
+    if(same_ancester(family, p1, p2) != "Not found")
+        return 1;
+    return 0;
+}
+
+// 
+int generations(vector<Person> &family, string p1, int gen=0) {
+    Person p = family[find(family, p1)];
+
+    if (p.childs.size() == 0) {
+        return gen;
+    }
+    else {
+        int maxDepth = gen;
+        for (int i = 0; i < p.childs.size(); i++) {
+            int childDepth = generations(family, p.childs[i].name, gen + 1);
+            maxDepth = max(maxDepth, childDepth);
+        }
+        return maxDepth;  
+    }
+}
+
+
+
+map<int, string> how_far(const vector<Person> &family, string p1){
+    queue<string> q; 
+    vector<string> visited;  
+    vector<string> relatives;
+
+    q.push(p1);  
+    visited.push_back(p1); 
+    relatives.push_back(p1);
+
+    while (!q.empty()) {
+        string current = q.front();
+        q.pop();
+
+        int i = find(family, current);
+        Person a = family[i];
+
+        // Check and enqueue parents
+        if (a.father && find(visited.begin(), visited.end(), a.father->name) == visited.end()) {
+            relatives.push_back(a.father->name);
+            q.push(a.father->name);  
+            visited.push_back(a.father->name);  
+        }
+
+        if (a.mother && find(visited.begin(), visited.end(), a.mother->name) == visited.end()) {
+            relatives.push_back(a.mother->name);
+            q.push(a.mother->name); 
+            visited.push_back(a.mother->name);
+        }
+
+        if(a.father) {
+            for(auto &child : a.father->childs) {
+                if(child.name != current && find(visited.begin(), visited.end() ,child.name) == visited.end()) {
+                    relatives.push_back(child.name);
+                    q.push(child.name);
+                    visited.push_back(child.name);
+                }
+            }
+        }
+    }
+
+
+    map<int, string> ans;
+    ans[relatives.size()] = relatives[relatives.size()-1];
+    return ans;
+}
+
+void furthest(const std::vector<Person>& family) {
+    map<pair<int, string>, string> answers;
+
+    for (int i=0; i<family.size(); i++) {
+        map<int, string> temp;
+        temp = how_far(family, family[i].name);
+        auto it = temp.rbegin();
+        int distance = it->first;
+        string name = it->second;
+
+        answers[{distance, name}] = family[i].name;
+    }
+
+    auto last_pair = *answers.rbegin();
+    cout<<"The furthest relationship is between: ";
+    cout<<last_pair.first.second << " & " << last_pair.second<<endl; 
 
 }
 
@@ -188,10 +269,10 @@ int main(){
     add(q, "arash", "ebrahim", "ladan", family);
 
     Person w;
-    add(w, "ala", "arash", "mandana", family);
+    add(w, "ala", "ali", "narges", family);
 
-    cout<<same_ancester(family, "ala", "amir");
-
-
+    vector<int> val = {};
+    cout<<generations(family, "akbar", 0);
+    
     return 0;
 }
