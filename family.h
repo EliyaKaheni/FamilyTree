@@ -162,7 +162,7 @@ string same_ancester(string p1, string p2, vector<Person> family){
 }
 
 // Are two people related or not?
-bool relationsihp(string p1, string p2, vector<Person> family){
+bool relationship(string p1, string p2, vector<Person> family){
     queue<string> q; 
     vector<string> visited;  
 
@@ -176,6 +176,20 @@ bool relationsihp(string p1, string p2, vector<Person> family){
         int i = find(family, current);
         Person a = family[i];
 
+        vector<string> childs1;
+        vector<string> childs2;
+
+        for(auto &child : a.childs){
+            childs1.push_back(child.name);
+        }
+
+        for(auto &child : family[find(family, p2)].childs){
+            childs2.push_back(child.name);
+        }
+        
+        if(childs1==childs2)
+            return 1;
+
         if (a.father && find(visited.begin(), visited.end(), a.father->name) == visited.end()) {
             q.push(a.father->name);
             if(a.father->name == p2)
@@ -185,7 +199,7 @@ bool relationsihp(string p1, string p2, vector<Person> family){
 
         if (a.mother && find(visited.begin(), visited.end(), a.mother->name) == visited.end()) {
             q.push(a.mother->name); 
-            if(a.father->name == p2)
+            if(a.mother->name == p2)
                 return 1;
             visited.push_back(a.mother->name);
         }
@@ -194,7 +208,7 @@ bool relationsihp(string p1, string p2, vector<Person> family){
             for(auto &child : a.father->childs) {
                 if(child.name != current && find(visited.begin(), visited.end() ,child.name) == visited.end()) {
                     q.push(child.name);
-                    if(a.father->name == p2)
+                    if(child.name == p2)
                         return 1;
                     visited.push_back(child.name);
                 }
@@ -207,7 +221,7 @@ bool relationsihp(string p1, string p2, vector<Person> family){
 }
 
 // How many generation are related to this person
-int generations(vector<Person> &family, string p1, int gen=0){
+int generations(vector<Person> &family, string p1, int gen){
     Person p = family[find(family, p1)];
 
     if (p.childs.size() == 0) {
