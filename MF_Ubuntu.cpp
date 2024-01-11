@@ -100,9 +100,9 @@ int main(){
             cin>>name;
 
             if(dad_is_that_you(name, father, family))
-                cout<<"Yes. " << father << " is the father of the " << name;
+                cout<<"Yes. " << father << " is the father of " << name;
             else
-                cout<<"No." << father << " isn`t the father of the " << name;
+                cout<<"No." << father << " isn`t the father of " << name;
             
             cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
             sleep(5);
@@ -150,7 +150,7 @@ int main(){
             cout<<"Enter the name of the second person: ";
             cin>>name2;
 
-            if(relationsihp(name, name2, family))
+            if(relationship(name, name2, family))
                 cout<<"Yes. " << name << " & " << name2 << " are relatives.";
             else
                 cout<<"No. " << name << " & " << name2 << " aren`t relatives.";
