@@ -100,9 +100,9 @@ int main(){
             cin>>name;
 
             if(dad_is_that_you(name, father, family))
-                cout<<"Yes. " << father << " is the father of the " << name;
+                cout<<"Yes. " << father << " is the father of " << name;
             else
-                cout<<"No." << father << " isn`t the father of the " << name;
+                cout<<"No." << father << " isn`t the father of " << name;
             
             cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
             sleep(5);
@@ -117,9 +117,9 @@ int main(){
             cin>>name;
 
             if(mom_is_that_you(name, father, family))
-                cout<<"Yes. " << mother << " is the mother of the " << name;
+                cout<<"Yes. " << mother << " is the mother of " << name;
             else
-                cout<<"No." << mother << " isn`t the mother of the " << name;
+                cout<<"No." << mother << " isn`t the mother of " << name;
             
             cout<<endl<<"You`ll be back to the main menu in 5 seconds ..."<<endl;
             sleep(5);
