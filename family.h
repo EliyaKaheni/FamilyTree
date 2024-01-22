@@ -8,7 +8,7 @@ void died(vector<Person> &family, string p);
 int find(vector<Person> family, string _name);
 void furthest(const std::vector<Person>& family);
 int generations(vector<Person> &family, string p1, int gen=0);
-bool relationsihp(string p1, string p2, vector<Person> family);
+bool relationship(string p1, string p2, vector<Person> family);
 string same_ancester(string p1, string p2, vector<Person> family);
 map<int, string> how_far(const vector<Person> &family, string p1);
 bool bro_or_sis(string _name, string _sibling, vector<Person> family);
@@ -192,7 +192,7 @@ bool relationship(string p1, string p2, vector<Person> family){
 
         if (a.father && find(visited.begin(), visited.end(), a.father->name) == visited.end()) {
             q.push(a.father->name);
-            if(a.father->name == p2)
+            if(a.father->name == p2 && !dad_is_that_you(p1, p2, family))
                 return 1;  
             visited.push_back(a.father->name);  
         }
