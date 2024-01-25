@@ -111,7 +111,7 @@ bool bro_or_sis(string _name, string _sibling, vector<Person> family){
     return (temp.father->name == temp2.father->name) && (temp.mother->name == temp2.mother->name);
 }
 
-// Find all ancestors of a person
+// Find all ancestors of a person using BFS
 vector<string> ancestor_finder(string p1, vector<string> &ancestors, vector<Person> &family){
     queue<string> q; 
     unordered_set<string> visited;  
@@ -161,7 +161,7 @@ string same_ancester(string p1, string p2, vector<Person> family){
 
 }
 
-// Are two people related or not?
+// Are two people related or not? using BFS
 bool relationship(string p1, string p2, vector<Person> family){
     queue<string> q; 
     vector<string> visited;  
@@ -176,30 +176,16 @@ bool relationship(string p1, string p2, vector<Person> family){
         int i = find(family, current);
         Person a = family[i];
 
-        vector<string> childs1;
-        vector<string> childs2;
-
-        for(auto &child : a.childs){
-            childs1.push_back(child.name);
-        }
-
-        for(auto &child : family[find(family, p2)].childs){
-            childs2.push_back(child.name);
-        }
-        
-        if(childs1==childs2)
-            return 1;
-
         if (a.father && find(visited.begin(), visited.end(), a.father->name) == visited.end()) {
             q.push(a.father->name);
-            if(a.father->name == p2 && !dad_is_that_you(p1, p2, family))
+            if(a.father->name == p2)
                 return 1;  
             visited.push_back(a.father->name);  
         }
 
         if (a.mother && find(visited.begin(), visited.end(), a.mother->name) == visited.end()) {
             q.push(a.mother->name); 
-            if(a.mother->name == p2)
+            if(a.father->name == p2)
                 return 1;
             visited.push_back(a.mother->name);
         }
@@ -208,7 +194,7 @@ bool relationship(string p1, string p2, vector<Person> family){
             for(auto &child : a.father->childs) {
                 if(child.name != current && find(visited.begin(), visited.end() ,child.name) == visited.end()) {
                     q.push(child.name);
-                    if(child.name == p2)
+                    if(a.father->name == p2)
                         return 1;
                     visited.push_back(child.name);
                 }
@@ -237,7 +223,7 @@ int generations(vector<Person> &family, string p1, int gen){
     }
 }
 
-// Maximum distance of a person to another related person in the family
+// Maximum distance of a person to another related person in the family BFS
 map<int, string> how_far(const vector<Person> &family, string p1){
     queue<string> q; 
     vector<string> visited;  
@@ -283,7 +269,7 @@ map<int, string> how_far(const vector<Person> &family, string p1){
     return ans;
 }
 
-// Who two people have the furthest distance in the family
+// Which two people have the furthest distance in the family
 void furthest(const std::vector<Person>& family){
     map<pair<int, string>, string> answers;
 
@@ -301,4 +287,32 @@ void furthest(const std::vector<Person>& family){
     cout<<"The furthest relationship in your family is between: ";
     cout<<last_pair.first.second << " & " << last_pair.second<<endl; 
 
+}
+
+// Saves the family tree
+void save(vector<Person> family){
+    string jsonString = "{\n    ";
+    int i=0;
+    for( ; i<family.size()-1 ; i++){
+        Person person = family[i];
+        if(person.father){
+            jsonString += "\"" + person.name + "\": [ ";
+            jsonString += "\"" + person.father->name + "\" " + ", ";
+            jsonString += "\"" + person.mother->name + "\" " + " ]";
+            jsonString += ",\n    ";
+        }
+    }
+        jsonString += "\"" + family[i].name + "\": [ ";
+        jsonString += "\"" + family[i].father->name + "\" " + ", ";
+        jsonString += "\"" + family[i].mother->name + "\" " + " ]";
+        jsonString += "\n";
+        jsonString += "}";
+
+        ofstream outFile("familyData.json");
+
+        if (outFile.is_open()) {
+            outFile << jsonString;
+            outFile.close();
+        }
+     
 }
